@@ -11,34 +11,22 @@ const G = 1e-3;
 
 const celestialObjectConfigs = [
   {
-    radius: 20,
-    position: { x: 0, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: 0 },
-    mass: 20000000,
-  },
-  {
-    radius: 5,
-    position: { x: 100, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: -14 },
-    mass: 10000,
-  },
-  {
-    radius: 5,
-    position: { x: 200, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: -10 },
-    mass: 10000,
-  },
-  {
     radius: 8,
-    position: { x: 350, y: 0, z: 0 },
-    velocity: { x: 0, y: 0, z: -8 },
-    mass: 50000,
+    position: { x: 0, y: 400, z: 0 },
+    velocity: { x: 2, y: 0, z: 4 },
+    mass: 8000000,
+  },
+  {
+    radius: 4,
+    position: { x: 0, y: 0, z: 400 },
+    velocity: { x: 0, y: 3, z: 0 },
+    mass: 7000000,
   },
   {
     radius: 6,
-    position: { x: 450, y: 0, z: 0 },
-    velocity: { x: 0, y: 1, z: -6 },
-    mass: 80000,
+    position: { x: 400, y: 0, z: 0 },
+    velocity: { x: 5, y: 2, z: 0 },
+    mass: 6000000,
   },
 ];
 
@@ -88,17 +76,7 @@ resetButton.addEventListener("click", restart);
 
 randomButton.addEventListener("click", () => {
   celestialObjectConfigs.length = 0;
-
-  for (let i = 0; i < bodiesNumber; i++) {
-    const radius = Math.random() * 5 + 1;
-    const color = getRandomColor();
-    const position = getRandomPosition(400);
-    const velocity = getRandomVelocity(0.5);
-    const mass = Math.random() * 100000 + 10000;
-
-    celestialObjectConfigs.push({ radius, color, position, velocity, mass });
-  }
-
+  createRandomCelestialObjectConfigs();
   restart();
 });
 
@@ -130,18 +108,22 @@ function createRenderer() {
 
 function createCamera() {
   const { innerWidth, innerHeight } = window;
-  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight);
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    innerWidth / innerHeight,
+    1,
+    10000
+  );
 
-  camera.position.copy(new THREE.Vector3(445, 180, 445));
+  camera.position.copy(new THREE.Vector3(845, 550, 845));
 
   return camera;
 }
 
 function createControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
+
   controls.enableDamping = true;
-  // controls.autoRotate = true;
-  // controls.autoRotateSpeed = 0.1;
 
   return controls;
 }
@@ -179,7 +161,7 @@ function createCelestialObject({ radius, mass, position, velocity }) {
   };
 }
 
-function clearCelestialObjects(celestialObjects) {
+function clearCelestialObjects() {
   for (const celestialObject of celestialObjects) {
     scene.remove(celestialObject.mesh);
     scene.remove(celestialObject.trail.line);
@@ -200,13 +182,13 @@ function init() {
 }
 
 function restart() {
-  clearCelestialObjects(celestialObjects);
+  clearCelestialObjects();
   resetCamera();
   init();
 }
 
 function resetCamera() {
-  camera.position.copy(new THREE.Vector3(445, 150, 445));
+  camera.position.copy(new THREE.Vector3(845, 550, 845));
   camera.lookAt(0, 0, 0);
   controls.target.set(0, 0, 0);
   controls.zoomSpeed = 1.0;
@@ -218,9 +200,9 @@ function animate() {
 
   const deltaTime = clock.getDelta() * timeRate;
 
-  updateState(celestialObjects, deltaTime);
+  updateState(deltaTime);
 
-  updateCelestialObjects(celestialObjects);
+  updateCelestialObjects();
 
   controls.update();
 
@@ -244,7 +226,7 @@ function calculateGravitationalForce(a, b) {
   return forceVector;
 }
 
-function updateState(celestialObjects, deltaTime) {
+function updateState(deltaTime) {
   for (let i = 0; i < celestialObjects.length; i++) {
     const celestialObject = celestialObjects[i];
     const totalForce = new THREE.Vector3(0, 0, 0);
@@ -267,7 +249,7 @@ function updateState(celestialObjects, deltaTime) {
   }
 }
 
-function updateCelestialObjects(celestialObjects) {
+function updateCelestialObjects() {
   for (const celestialObject of celestialObjects) {
     celestialObject.mesh.position.copy(celestialObject.position);
     updateTrail(celestialObject);
@@ -315,9 +297,9 @@ function getRandomColor() {
 }
 
 function getRandomPosition(maxDistance) {
-  const x = Math.floor(Math.random() * maxDistance);
-  const y = Math.floor(Math.random() * maxDistance);
-  const z = Math.floor(Math.random() * maxDistance);
+  const x = Math.random() * maxDistance;
+  const y = Math.random() * maxDistance;
+  const z = Math.random() * maxDistance;
 
   return { x, y, z };
 }
@@ -328,4 +310,16 @@ function getRandomVelocity(maxSpeed) {
   const z = Math.random() * 2 * maxSpeed - maxSpeed;
 
   return { x, y, z };
+}
+
+function createRandomCelestialObjectConfigs() {
+  for (let i = 0; i < bodiesNumber; i++) {
+    const radius = Math.random() * 20 + 1;
+    const color = getRandomColor();
+    const position = getRandomPosition(400);
+    const velocity = getRandomVelocity(5);
+    const mass = Math.random() * 10000000 + 500000;
+
+    celestialObjectConfigs.push({ radius, color, position, velocity, mass });
+  }
 }
